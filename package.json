@@ -1,0 +1,23 @@
+{
+  "name": "verbatim-shot",
+  "version": "0.1.0",
+  "description": "Snapshot testing where your snapshots contain exactly the output you expect.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mvromer/verbatim-shot.git"
+  },
+  "keywords": [
+    "snapshot",
+    "regression"
+  ],
+  "author": "Michael Romer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mvromer/verbatim-shot/issues"
+  },
+  "homepage": "https://github.com/mvromer/verbatim-shot#readme"
+}
