@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Snapshot testing where your snapshots contain exactly the output you expect.",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -19,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/mvromer/verbatim-shot/issues"
   },
-  "homepage": "https://github.com/mvromer/verbatim-shot#readme"
+  "homepage": "https://github.com/mvromer/verbatim-shot#readme",
+  "devDependencies": {
+    "eslint": "^7.21.0"
+  }
 }
