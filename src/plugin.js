@@ -3,6 +3,9 @@
  */
 export const verbatimSnapshot = () => {
   return (chai, utils) => {
-    console.log(`Inside plugin: ${this}`);
+    chai.Assertion.addMethod('matchVerbatimSnapshot', function () {
+      console.log(`Inside matcher: ${this}`);
+      console.log(this);
+    });
   };
 };
