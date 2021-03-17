@@ -8,7 +8,13 @@
 // Req: Fail if test subject is not a string
 
 // installing chai plugin
+// - create mocha context store
+//   - this thing is used by beforeEach to store the mocha context
+//   - this thing is used by matchSnapshotVerbatim to get the test key from the mocha context
+//
 // - create "snapshot manager"
+//   - this is used by matchSnapshotVerbatim to retrieve and update snapshot files
+//
 // - install beforeEach method
 
 // before each test:
