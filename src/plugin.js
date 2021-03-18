@@ -1,12 +1,12 @@
-import { CurrentMochaTestStore } from './store.js';
+import { MochaTestMetaStore } from './test-meta.js';
 
 /**
  * Options used to configure verbatim-shot.
  *
  * @typedef VerbatimShotOptions
  *
- * @property {import('./store.js').CurrentMochaTestStore} testStore Store used for tracking the
- * current Mocha test.
+ * @property {import('./test-meta.js').MochaTestMetaStore} testMetaStore Store used for tracking and
+ * exposing metadata about the current Mocha test.
  */
 
 /**
@@ -15,12 +15,11 @@ import { CurrentMochaTestStore } from './store.js';
  * @returns {Chai.ChaiPlugin}
  */
 export const verbatimSnapshot = (options = {}) => {
-  const testStore = options.testStore || new CurrentMochaTestStore();
+  const testMetaStore = options.testMetaStore || new MochaTestMetaStore();
 
   return (chai, utils) => {
     chai.Assertion.addMethod('matchVerbatimSnapshot', function () {
-      console.log(`Inside matcher. Test store get:`);
-      console.log(testStore.getCurrentTest());
+      console.log(`Inside matcher. Current test key: ${testMetaStore.testKey}`);
     });
   };
 };

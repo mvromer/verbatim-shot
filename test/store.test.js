@@ -1,14 +1,17 @@
 import { expect } from 'chai';
-import { CurrentMochaTestStore } from '../src/store.js';
+import { MochaTestMetaStore } from '../src/test-meta.js';
 
-const testStore = new CurrentMochaTestStore();
+const testMetaStore = new MochaTestMetaStore();
 
 describe('Current Mocha test store', function () {
+  let testFullName = null;
+
   beforeEach(function () {
-    testStore.setCurrentTest(this.currentTest);
+    testFullName = this.currentTest.fullTitle();
+    testMetaStore.setCurrentTest(this.currentTest);
   });
 
   it(`should store the same test object that Mocha sets on a test's context`, function () {
-    expect(testStore.getCurrentTest()).to.equal(this.test);
+    expect(testMetaStore.testKey).to.equal(testFullName);
   });
 });
