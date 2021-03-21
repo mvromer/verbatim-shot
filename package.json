@@ -29,10 +29,14 @@
     "chai": "^4.3.3",
     "eslint": "^7.21.0",
     "eslint-plugin-mocha": "^8.1.0",
-    "mocha": "^8.3.2"
+    "mocha": "^8.3.2",
+    "write-pkg": "^4.0.0"
   },
   "peerDependencies": {
     "mocha": "^8.0.0",
     "chai": "^4.0.0"
+  },
+  "dependencies": {
+    "parse-glob": "^3.0.4"
   }
 }

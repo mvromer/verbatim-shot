@@ -26,4 +26,27 @@
 //       - this only works if you're processing inside it. you get this via this.currentTest inside
 //         the beforeEach hook
 
+// snapshot storage
+// /<snapshot root>/
+//   /verbatim/
+//     /path/relative/to/test/root/foo.test.js/
+//       /snap01.txt
+//       /snap02.txt
+//       /  ...
+
+// snapshot file format:
+//
+// ##<test key>
+// <snapshot contents>
+
+// XXX: need to think about how to design the snapshot manager...
+// - need to determine root path for snapshots
+//   - configurable via option
+//     - look at cosmiconfig for this. for now pull config from package.json
+//   - default to finding the root test path
+//     - use mocha loadOptions to load an object
+//       - the 'spec' property appears to be under the _ property name. why? reasons..
+//         - this is a glob
+//         - can use glob-parent to determine base path. this can be the root test path
+
 export * from './plugin.js';
