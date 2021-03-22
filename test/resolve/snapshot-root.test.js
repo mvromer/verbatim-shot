@@ -3,7 +3,7 @@ import os from 'os';
 import path from 'path';
 import { expect } from 'chai';
 import writePackage from 'write-pkg';
-import { resolveSnapshotRoot } from '../src/resolve.js';
+import { resolveSnapshotRoot } from '../../src/resolve.js';
 
 describe('Snapshot root resolver', function() {
   context('when given relative path', function() {
