@@ -1,5 +1,5 @@
 import { MochaTestMetaStore } from './test-meta.js';
-import { resolveSnapshotRoot } from './resolve.js';
+import { resolveSnapshotRoot, resolveTestRoots } from './resolve.js';
 
 /**
  * Options used to configure verbatim-shot.
@@ -23,7 +23,8 @@ import { resolveSnapshotRoot } from './resolve.js';
  */
 export const verbatimSnapshot = (options = {}) => {
   const testMetaStore = options.testMetaStore ?? new MochaTestMetaStore();
-  const snapshotRoot = resolveSnapshotRoot(options.snapshotRoot);
+  const testRoots = resolveTestRoots();
+  const snapshotRoot = resolveSnapshotRoot(testRoots, options.snapshotRoot);
 
   return (chai, utils) => {
     chai.Assertion.addMethod('matchVerbatimSnapshot', function () {

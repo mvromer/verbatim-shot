@@ -13,13 +13,10 @@ export const resolveTestRoots = () => {
     .map(testRoot => path.resolve(testRoot));
 };
 
-export const resolveSnapshotRoot = (givenSnapshotRoot) => {
+export const resolveSnapshotRoot = (testRoots, givenSnapshotRoot) => {
   if (givenSnapshotRoot) {
     return path.resolve(givenSnapshotRoot);
   }
 
-  const mochaOptions = loadOptions();
-  const parsedSpecGlob = parseGlob(mochaOptions._[0] ?? process.cwd());
-  const testRoot = parsedSpecGlob.is.glob ? parsedSpecGlob.base : parsedSpecGlob.orig;
-  return path.join(path.resolve(testRoot), 'snapshots', 'verbatim');
+  return path.join(path.resolve(testRoots[0]), 'snapshots', 'verbatim');
 };
