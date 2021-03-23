@@ -23,6 +23,9 @@ export class MochaMetastore {
     return this.currentTest?.fullTitle() ?? '';
   }
 
+  /**
+   * @returns {string[]}
+   */
   get testRoots() {
     // As of Mocha 8.3.2, the spec paths given to Mocha are on the _ property of the loaded options.
     const mochaOptions = loadOptions();
