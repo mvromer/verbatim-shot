@@ -3,21 +3,23 @@ import os from 'os';
 import path from 'path';
 import { expect } from 'chai';
 import writePackage from 'write-pkg';
-import { resolveSnapshotRoot, resolveTestRoots } from '../../src/resolve.js';
+import { resolveSnapshotRoot } from '../../src/resolve.js';
 
 describe('Snapshot root resolver', function() {
   context('when given relative path', function() {
     it('should resolve to absolute path using current working directory', function() {
       const snapshotRoot = 'snapshots';
+      const testRoots = [process.cwd()];
       const expected = path.join(process.cwd(), snapshotRoot);
-      expect(resolveSnapshotRoot(resolveTestRoots(), snapshotRoot)).to.equal(expected);
+      expect(resolveSnapshotRoot(testRoots, snapshotRoot)).to.equal(expected);
     });
   });
 
   context('when given absolute path', function() {
     it('should resolve to given path', function() {
       const snapshotRoot = path.join(process.cwd(), 'snapshots');
-      expect(resolveSnapshotRoot(resolveTestRoots(), snapshotRoot)).to.equal(snapshotRoot);
+      const testRoots = [process.cwd()];
+      expect(resolveSnapshotRoot(testRoots, snapshotRoot)).to.equal(snapshotRoot);
     });
   });
 
@@ -46,8 +48,9 @@ describe('Snapshot root resolver', function() {
         await writePackage(testPath, {
           name: 'resolver-test'
         });
+        const testRoots = [testPath];
         const expected = path.join(process.cwd(), 'snapshots', 'verbatim');
-        expect(resolveSnapshotRoot(resolveTestRoots())).to.equal(expected);
+        expect(resolveSnapshotRoot(testRoots)).to.equal(expected);
       });
     });
 
@@ -59,8 +62,9 @@ describe('Snapshot root resolver', function() {
             spec: 'test/**/*.test.js'
           }
         });
+        const testRoots = [path.join(testPath, 'test')];
         const expected = path.join(process.cwd(), 'test', 'snapshots', 'verbatim');
-        expect(resolveSnapshotRoot(resolveTestRoots())).to.equal(expected);
+        expect(resolveSnapshotRoot(testRoots)).to.equal(expected);
       });
     });
   });

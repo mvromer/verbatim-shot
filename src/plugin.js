@@ -1,4 +1,4 @@
-import { MochaTestMetaStore } from './test-meta.js';
+import { MochaMetastore } from './metastore.js';
 import { resolveSnapshotRoot, resolveTestRoots } from './resolve.js';
 
 /**
@@ -6,8 +6,8 @@ import { resolveSnapshotRoot, resolveTestRoots } from './resolve.js';
  *
  * @typedef VerbatimShotOptions
  *
- * @property {import('./test-meta.js').MochaTestMetaStore} testMetaStore Store used for tracking and
- * exposing metadata about the current Mocha test.
+ * @property {import('./metastore.js').MochaMetastore} mochaMetastore Store used for tracking and
+ * exposing metadata about the current Mocha invocation.
  *
  * @property {string} snapshotRoot Path to the root directory containing your verbatim snapshots. If
  * not given, then verbatim snapshots will be placed in <testRoot>/snapshots/verbatim, where
@@ -22,13 +22,13 @@ import { resolveSnapshotRoot, resolveTestRoots } from './resolve.js';
  * @returns {Chai.ChaiPlugin}
  */
 export const verbatimSnapshot = (options = {}) => {
-  const testMetaStore = options.testMetaStore ?? new MochaTestMetaStore();
+  const mochaMetastore = options.mochaMetastore ?? new MochaMetastore();
   const testRoots = resolveTestRoots();
   const snapshotRoot = resolveSnapshotRoot(testRoots, options.snapshotRoot);
 
   return (chai, utils) => {
     chai.Assertion.addMethod('matchVerbatimSnapshot', function () {
-      console.log(`Inside matcher. Current test key: ${testMetaStore.testKey}`);
+      console.log(`Inside matcher. Current test key: ${mochaMetastore.testKey}`);
     });
   };
 };
