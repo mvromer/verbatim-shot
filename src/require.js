@@ -1,16 +1,16 @@
 import { use as chaiUse } from 'chai';
-import { MochaTestMetaStore } from './test-meta.js';
+import { MochaMetastore } from './metastore.js';
 import { verbatimSnapshot } from './plugin.js';
 
-const testMetaStore = new MochaTestMetaStore();
+const mochaMetastore = new MochaMetastore();
 
 /** @type {Mocha.RootHookObject} */
 export const mochaHooks = {
   beforeAll() {
-    chaiUse(verbatimSnapshot({ testMetaStore: testMetaStore }));
+    chaiUse(verbatimSnapshot({ mochaMetastore: mochaMetastore }));
   },
 
   beforeEach() {
-    testMetaStore.setCurrentTest(this.currentTest);
+    mochaMetastore.setCurrentTest(this.currentTest);
   }
 };
