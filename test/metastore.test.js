@@ -6,7 +6,7 @@ import writePackage from 'write-pkg';
 import { MochaMetastore } from '../src/metastore.js';
 
 describe('Mocha metastore', function() {
-  context('current test metadata', function() {
+  context('currentTestKey property', function() {
     const mochaMetastore = new MochaMetastore();
 
     context('when current test is set in beforeEach hook', function() {
@@ -18,25 +18,72 @@ describe('Mocha metastore', function() {
       });
 
       it(`should expose current test's key within test spec`, function() {
-        expect(mochaMetastore.testKey).to.equal(testFullName);
+        expect(mochaMetastore.currentTestKey).to.equal(testFullName);
+      });
+    });
+  });
+
+  context('currentTestRelativePath property', function() {
+    context('when current test is not set', function() {
+      it('should throw an error', function() {
+        const mochaMetastore = new MochaMetastore();
+        expect(() => mochaMetastore.currentTestRelativePath).to.throw();
+      });
+    });
+
+    context('when current test has unique test root', function() {
+      it('should return path relative to configured test root', function() {
+        const testRoots = ['C:\\resolver-test\\test'];
+        const testFile = 'test.js';
+
+        const mochaMetastore = new MochaMetastore();
+        Object.defineProperty(mochaMetastore, 'testRoots', {
+          value: testRoots,
+          writable: false
+        });
+
+        const mochaTestStub = {
+          file: path.join(testRoots[0], testFile)
+        };
+
+        mochaMetastore.setCurrentTest(mochaTestStub);
+        expect(mochaMetastore.currentTestRelativePath).to.equal(testFile);
+      });
+    });
+
+    context('when current test has multiple matching test roots', function() {
+      it('should return path relative to longest matching test root', function() {
+        const testRoots = [
+          'C:\\resolver-test\\test\\deeper',
+          'C:\\resolver-test\\test'
+        ];
+        const testFile = 'test.js';
+
+        const mochaMetastore = new MochaMetastore();
+        Object.defineProperty(mochaMetastore, 'testRoots', {
+          value: testRoots,
+          writable: false
+        });
+
+        const mochaTestStub = {
+          file: path.join(testRoots[0], testFile)
+        };
+
+        mochaMetastore.setCurrentTest(mochaTestStub);
+        expect(mochaMetastore.currentTestRelativePath).to.equal(testFile);
       });
     });
   });
 
   context('testRoots property', function() {
     let mochaMetastore;
-    let testPathPrefix;
     let originalPath;
     let testPath;
-
-    before(function() {
-      testPathPrefix = path.join(os.tmpdir(), 'verbatim-shot');
-    });
 
     beforeEach(async function() {
       mochaMetastore = new MochaMetastore();
       originalPath = process.cwd();
-      testPath = await fs.mkdtemp(testPathPrefix);
+      testPath = await fs.mkdtemp(path.join(os.tmpdir(), 'verbatim-shot'));
       process.chdir(testPath);
     });
 

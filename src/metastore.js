@@ -19,8 +19,17 @@ export class MochaMetastore {
     this.currentTest = test;
   }
 
-  get testKey() {
+  get currentTestKey() {
     return this.currentTest?.fullTitle() ?? '';
+  }
+
+  get currentTestRelativePath() {
+    if (!this.currentTest) {
+      throw new Error('Current test not set on Mocha metastore.');
+    }
+
+    const currentTestRoot = this.testRoots.find(root => this.currentTest.file.startsWith(root));
+    return path.relative(currentTestRoot, this.currentTest.file);
   }
 
   /**
@@ -37,6 +46,10 @@ export class MochaMetastore {
         const parsedGlob = parseGlob(specPath);
         return path.resolve(parsedGlob.is.glob ? parsedGlob.base : parsedGlob.orig);
       });
+
+    // Sort by path length because in .currentTestRelativePath, we want to quickly find the longest
+    // test root that prefixes the current test's file path.
+    testRoots.sort((r1, r2) => r1.length - r2.length);
 
     // Memoize the property.
     Object.defineProperty(this, 'testRoots', {
