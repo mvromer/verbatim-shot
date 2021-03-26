@@ -38,4 +38,26 @@ describe('Snapshot manager', function() {
       });
     });
   });
+
+  context('loadCurrentSnapshot', function() {
+    context('when no manifest can be found', function() {
+      it('should return null', function() {
+      });
+    });
+
+    context('when no manifest has no entry for current test', function() {
+      it('should return null', function() {
+      });
+    });
+
+    context('when snapshot file for current test cannot be found', function() {
+      it('should return null', function() {
+      });
+    });
+
+    context('when snapshot file and manifest exist', function() {
+      it('should return a valid snapshot', function() {
+      });
+    });
+  });
 });

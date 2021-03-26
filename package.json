@@ -37,6 +37,7 @@
     "chai": "^4.0.0"
   },
   "dependencies": {
+    "fs-extra": "^9.1.0",
     "parse-glob": "^3.0.4"
   }
 }
