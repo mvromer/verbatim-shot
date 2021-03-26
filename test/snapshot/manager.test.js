@@ -1,7 +1,9 @@
+import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
 import { expect } from 'chai';
-import { SnapshotManager } from '../src/snapshot/manager.js';
+import withLocalTmpDir from 'with-local-tmp-dir';
+import { SnapshotManager } from '../../src/snapshot/manager.js';
 
 describe('Snapshot manager', function() {
   context('snapshotRoot property', function() {
@@ -41,22 +43,85 @@ describe('Snapshot manager', function() {
 
   context('loadCurrentSnapshot', function() {
     context('when no manifest can be found', function() {
-      it('should return null', function() {
+      it('should return null', async function() {
+        await withLocalTmpDir(() => {
+          const mochaMetastore = {
+            testRoots: [process.cwd()],
+            currentTest: {
+              file: path.join(process.cwd(), 'test.js'),
+              fullTitle() { return 'Test'; }
+            },
+            currentTestRelativePath: 'test.js'
+          };
+
+          const snapshotRoot = path.join(process.cwd(), 'snapshots');
+          const manager = new SnapshotManager(mochaMetastore, snapshotRoot);
+          expect(manager.loadCurrentSnapshot()).to.be.null;
+        });
       });
     });
 
-    context('when no manifest has no entry for current test', function() {
-      it('should return null', function() {
+    context('when manifest has no entry for current test', function() {
+      it('should return null', async function() {
+        await withLocalTmpDir(async () => {
+          const mochaMetastore = {
+            testRoots: [process.cwd()],
+            currentTest: {
+              file: path.join(process.cwd(), 'test.js'),
+              fullTitle() { return 'Test'; }
+            },
+            currentTestRelativePath: 'test.js'
+          };
+
+          const snapshotRoot = path.join(process.cwd(), 'snapshots');
+          await fs.mkdirp(path.join(snapshotRoot, 'test.js'));
+          await fs.writeJson(path.join(snapshotRoot, 'test.js', 'manifest.json'), {});
+          const manager = new SnapshotManager(mochaMetastore, snapshotRoot);
+          expect(manager.loadCurrentSnapshot()).to.be.null;
+        });
       });
     });
 
     context('when snapshot file for current test cannot be found', function() {
-      it('should return null', function() {
+      it('should return null', async function() {
+        await withLocalTmpDir(async () => {
+          const mochaMetastore = {
+            testRoots: [process.cwd()],
+            currentTest: {
+              file: path.join(process.cwd(), 'test.js'),
+              fullTitle() { return 'Test'; }
+            },
+            currentTestRelativePath: 'test.js'
+          };
+
+          const snapshotRoot = path.join(process.cwd(), 'snapshots');
+          await fs.mkdirp(path.join(snapshotRoot, 'test.js'));
+          await fs.writeJson(path.join(snapshotRoot, 'test.js', 'manifest.json'), { 'Test': { fileName: 'snap.txt' } });
+          const manager = new SnapshotManager(mochaMetastore, snapshotRoot);
+          expect(manager.loadCurrentSnapshot()).to.be.null;
+        });
       });
     });
 
     context('when snapshot file and manifest exist', function() {
-      it('should return a valid snapshot', function() {
+      it('should return a valid snapshot', async function() {
+        await withLocalTmpDir(async () => {
+          const mochaMetastore = {
+            testRoots: [process.cwd()],
+            currentTest: {
+              file: path.join(process.cwd(), 'test.js'),
+            },
+            currentTestRelativePath: 'test.js',
+            currentTestKey: 'Test'
+          };
+
+          const snapshotRoot = path.join(process.cwd(), 'snapshots');
+          await fs.mkdirp(path.join(snapshotRoot, 'test.js'));
+          await fs.writeJson(path.join(snapshotRoot, 'test.js', 'manifest.json'), { 'Test': { fileName: 'snap.txt' } });
+          await fs.writeFile(path.join(snapshotRoot, 'test.js', 'snap.txt'), 'This is a test snapshot');
+          const manager = new SnapshotManager(mochaMetastore, snapshotRoot);
+          expect(manager.loadCurrentSnapshot()).to.not.be.null;
+        });
       });
     });
   });

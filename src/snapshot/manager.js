@@ -49,7 +49,7 @@ export class SnapshotManager {
 
   _getOrLoadManifest(testRelativePath) {
     const manifest = this._loadedManifests.get(testRelativePath);
-    return manifest ?? this._loadedManifests(testRelativePath);
+    return manifest ?? this._loadManifest(testRelativePath);
   }
 
   _loadManifest(testRelativePath) {
@@ -60,7 +60,7 @@ export class SnapshotManager {
       this._loadedManifests.set(testRelativePath, manifest);
     }
 
-    return manifestPath;
+    return manifest;
   }
 
   /**
