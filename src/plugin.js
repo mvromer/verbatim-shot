@@ -27,7 +27,9 @@ export const verbatimSnapshot = (options = {}) => {
 
   return (chai, utils) => {
     chai.Assertion.addMethod('matchVerbatimSnapshot', function () {
-      console.log(`Inside matcher. Current test key: ${mochaMetastore.testKey}`);
+      // this._obj is the value in expect() call.
+
+      // Get snapshot of current test.
     });
   };
 };

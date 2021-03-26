@@ -48,6 +48,11 @@
 //       - the 'spec' property appears to be under the _ property name. why? reasons..
 //         - this is a glob
 //         - can use glob-parent to determine base path. this can be the root test path
+// - other operations:
+//   - load snapshot for current test
+//   - save snapshot for current test
+//
+// other behaviors:
 // - if a test key currently does not have a stored snapshot, then create a new snapshot from its
 //   given contents
 // - if a test key does have a snapshot, then need to diff the snapshot with the test key's given

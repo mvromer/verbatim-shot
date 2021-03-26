@@ -1,6 +1,14 @@
 import path from 'path';
 
 /**
+ * Snapshot manifest.
+ *
+ * @typedef SnapshotManifest
+ *
+ * @property {string} foo
+ */
+
+/**
  * Manage access to snapshots.
  */
 export class SnapshotManager {
@@ -11,6 +19,24 @@ export class SnapshotManager {
   constructor(mochaMetastore, snapshotRoot) {
     this.mochaMetastore = mochaMetastore;
     this.snapshotRoot = SnapshotManager.resolveSnapshotRoot(mochaMetastore, snapshotRoot);
+
+    /** @type Map<string, SnapshotManifest> */
+    this._loadedManifests = new Map();
+  }
+
+  loadCurrentSnapshot() {
+    const currentSnapshotDir = path.join(this.snapshotRoot, this.mochaMetastore.currentTestRelativePath);
+    const currentSnapshotManifestPath = path.join(currentSnapshotDir, 'manifest.json');
+  }
+
+  _getOrLoadManifest(testRelativePath) {
+    const manifest = this._loadedManifests.get(testRelativePath);
+    return manifest ?? this._loadedManifests(testRelativePath);
+  }
+
+  _loadManifest(testRelativePath) {
+    const snapshotDir = path.join(this.snapshotRoot, testRelativePath);
+    const manifestPath = path.join(snapshotDir, 'manifest.json');
   }
 
   /**
