@@ -88,10 +88,10 @@ describe('Snapshot manager', function() {
           const mochaMetastore = {
             testRoots: [process.cwd()],
             currentTest: {
-              file: path.join(process.cwd(), 'test.js'),
-              fullTitle() { return 'Test'; }
+              file: path.join(process.cwd(), 'test.js')
             },
-            currentTestRelativePath: 'test.js'
+            currentTestRelativePath: 'test.js',
+            currentTestKey: 'Test'
           };
 
           const snapshotRoot = path.join(process.cwd(), 'snapshots');
@@ -109,7 +109,7 @@ describe('Snapshot manager', function() {
           const mochaMetastore = {
             testRoots: [process.cwd()],
             currentTest: {
-              file: path.join(process.cwd(), 'test.js'),
+              file: path.join(process.cwd(), 'test.js')
             },
             currentTestRelativePath: 'test.js',
             currentTestKey: 'Test'

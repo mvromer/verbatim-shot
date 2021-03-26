@@ -26,7 +26,12 @@ export class Snapshot {
    */
   static loadFrom(snapshotDir, snapshotManifestData) {
     const snapshotPath = path.join(snapshotDir, snapshotManifestData.fileName);
-    const snapshotData = fs.readFileSync(snapshotPath, { encoding: 'utf-8' });
-    return new Snapshot(snapshotData);
+    try {
+      const snapshotData = fs.readFileSync(snapshotPath, { encoding: 'utf-8' });
+      return new Snapshot(snapshotData);
+    }
+    catch {
+      return null;
+    }
   }
 }
