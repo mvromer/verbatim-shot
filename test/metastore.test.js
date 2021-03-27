@@ -1,24 +1,28 @@
-import fs from 'fs/promises';
-import os from 'os';
 import path from 'path';
 import { expect } from 'chai';
+import chdir from 'chdir';
+import tmp from 'tmp-promise';
+import withLocalTmpDir from 'with-local-tmp-dir';
 import writePackage from 'write-pkg';
 import { MochaMetastore } from '../src/metastore.js';
 
+// This basically does the same thing as withLocalTmpDir except it creates its directory inside the
+// system's default temp directory (as determined by os.tmpdir()). This is needed because for some
+// tests, if a local temp directory is used, this project's Mocha config interferes with how a Mocha
+// metastore under test resolves its test roots and other settings derived from the Mocha config.
+const withSysTmpDir = (callback) => tmp.withDir(context => chdir(context.path, callback), { unsafeCleanup: true });
+
 describe('Mocha metastore', function() {
   context('currentTestKey property', function() {
-    const mochaMetastore = new MochaMetastore();
-
     context('when current test is set in beforeEach hook', function() {
-      let testFullName = null;
+      const mochaMetastore = new MochaMetastore();
 
       beforeEach(function () {
-        testFullName = this.currentTest.fullTitle();
         mochaMetastore.setCurrentTest(this.currentTest);
       });
 
       it(`should expose current test's key within test spec`, function() {
-        expect(mochaMetastore.currentTestKey).to.equal(testFullName);
+        expect(mochaMetastore.currentTestKey).to.equal(this.test.fullTitle());
       });
     });
   });
@@ -36,6 +40,8 @@ describe('Mocha metastore', function() {
         const testRoots = ['C:\\resolver-test\\test'];
         const testFile = 'test.js';
 
+        // Stub out an already memoized version of the testRoots property. That way we don't have to
+        // worry about any ambient Mocha config influencing this test's outcome.
         const mochaMetastore = new MochaMetastore();
         Object.defineProperty(mochaMetastore, 'testRoots', {
           value: testRoots,
@@ -59,6 +65,8 @@ describe('Mocha metastore', function() {
         ];
         const testFile = 'test.js';
 
+        // Stub out an already memoized version of the testRoots property. That way we don't have to
+        // worry about any ambient Mocha config influencing this test's outcome.
         const mochaMetastore = new MochaMetastore();
         Object.defineProperty(mochaMetastore, 'testRoots', {
           value: testRoots,
@@ -76,59 +84,52 @@ describe('Mocha metastore', function() {
   });
 
   context('testRoots property', function() {
-    let mochaMetastore;
-    let originalPath;
-    let testPath;
-
-    beforeEach(async function() {
-      mochaMetastore = new MochaMetastore();
-      originalPath = process.cwd();
-      testPath = await fs.mkdtemp(path.join(os.tmpdir(), 'verbatim-shot'));
-      process.chdir(testPath);
-    });
-
-    afterEach(async function() {
-      process.chdir(originalPath);
-      await fs.rmdir(testPath, { recursive: true });
-    });
-
     context('when no Mocha config given', function() {
       it('should resolve to current working directory', async function() {
-        await writePackage(testPath, {
-          name: 'resolver-test'
+        await withSysTmpDir(async () => {
+          await writePackage(process.cwd(), {
+            name: 'resolver-test'
+          });
+          const mochaMetastore = new MochaMetastore();
+          const expected = [process.cwd()];
+          expect(mochaMetastore.testRoots).to.deep.equal(expected);
         });
-        const expected = [process.cwd()];
-        expect(mochaMetastore.testRoots).to.deep.equal(expected);
       });
     });
 
     context('when Mocha config present', function() {
       it('should resolve to Mocha test root', async function() {
-        await writePackage(testPath, {
-          name: 'resolver-test',
-          mocha: {
-            spec: 'test/**/*.test.js'
-          }
+        await withSysTmpDir(async () => {
+          await writePackage(process.cwd(), {
+            name: 'resolver-test',
+            mocha: {
+              spec: 'test2/**/*.test.js'
+            }
+          });
+          const mochaMetastore = new MochaMetastore();
+          const expected = [path.join(process.cwd(), 'test2')];
+          expect(mochaMetastore.testRoots).to.deep.equal(expected);
         });
-        const expected = [path.join(process.cwd(), 'test')];
-        expect(mochaMetastore.testRoots).to.deep.equal(expected);
       });
 
       it('should resolve to all Mocha test roots', async function() {
-        await writePackage(testPath, {
-          name: 'resolver-test',
-          mocha: {
-            spec: [
-              'test/**/*.test.js',
-              'more-tests/**/*.test.js'
-            ]
-          }
+        await withSysTmpDir(async () => {
+          await writePackage(process.cwd(), {
+            name: 'resolver-test',
+            mocha: {
+              spec: [
+                'test/**/*.test.js',
+                'more-tests/**/*.test.js'
+              ]
+            }
+          });
+          const mochaMetastore = new MochaMetastore();
+          const expected = [
+            path.join(process.cwd(), 'test'),
+            path.join(process.cwd(), 'more-tests')
+          ];
+          expect(mochaMetastore.testRoots).to.deep.equal(expected);
         });
-        const expected = [
-          path.join(process.cwd(), 'test'),
-          path.join(process.cwd(), 'more-tests')
-        ];
-        expect(mochaMetastore.testRoots).to.deep.equal(expected);
       });
     });
   });
