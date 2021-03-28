@@ -17,21 +17,12 @@ export class Snapshot {
   }
 
   /**
-   * @param {string} snapshotDir Directory to load the snapshot from.
-   *
-   * @param {SnapshotManifestData} snapshotManifestData Metadata about the snapshot to load pulled
-   * from the snapshot's manifest.
+   * @param {string} snapshotPath Path of file to load the snapshot from.
    *
    * @returns {Snapshot}
    */
-  static loadFrom(snapshotDir, snapshotManifestData) {
-    const snapshotPath = path.join(snapshotDir, snapshotManifestData.fileName);
-    try {
-      const snapshotData = fs.readFileSync(snapshotPath, { encoding: 'utf-8' });
-      return new Snapshot(snapshotData);
-    }
-    catch {
-      return null;
-    }
+  static loadFromFile(snapshotPath) {
+    const snapshotData = fs.readFileSync(snapshotPath, { encoding: 'utf-8' });
+    return new Snapshot(snapshotData);
   }
 }
