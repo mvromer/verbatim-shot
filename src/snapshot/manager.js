@@ -43,10 +43,13 @@ export class SnapshotManager {
       return null;
     }
 
-    const currentSnapshotDir = path.join(this.snapshotRoot, this.mochaMetastore.currentTestRelativePath);
+    const currentSnapshotPath = path.join(
+      this.snapshotRoot,
+      this.mochaMetastore.currentTestRelativePath,
+      currentSnapshotManifestData.fileName);
+
     try {
-      const snapshotPath = path.join(currentSnapshotDir, currentSnapshotManifestData.fileName);
-      return Snapshot.loadFromFile(snapshotPath);
+      return Snapshot.loadFromFile(currentSnapshotPath);
     }
     catch {
       return null;
