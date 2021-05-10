@@ -8,6 +8,9 @@
     "./require": "./src/require.js"
   },
   "type": "module",
+  "files": [
+    "src"
+  ],
   "scripts": {
     "test": "mocha"
   },
