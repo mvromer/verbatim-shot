@@ -45,5 +45,8 @@
     "has-flag": "^4.0.0",
     "parse-glob": "^3.0.4",
     "rev-hash": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=14"
   }
 }
