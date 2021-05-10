@@ -102,3 +102,6 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Don't add docs that are internal, rough drafts, etc.
+docs/unpublished/
