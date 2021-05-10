@@ -1,6 +1,6 @@
 {
   "name": "verbatim-shot",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Snapshot testing where your snapshots contain exactly the output you expect.",
   "main": "src/index.js",
   "exports": {
