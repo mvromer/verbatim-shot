@@ -1,5 +1,7 @@
+import hasFlag from 'has-flag';
 import { MochaMetastore } from './metastore.js';
 import { SnapshotManager } from './snapshot/manager.js';
+import { Snapshot } from './snapshot/snapshot.js';
 
 /**
  * Options used to configure verbatim-shot.
@@ -22,14 +24,48 @@ import { SnapshotManager } from './snapshot/manager.js';
  * @returns {Chai.ChaiPlugin}
  */
 export const verbatimSnapshot = (options = {}) => {
+  const updateSnapshots = hasFlag('--update');
   const mochaMetastore = options.mochaMetastore ?? new MochaMetastore();
-  const snapshotManger = new SnapshotManager(mochaMetastore);
+  const snapshotManger = new SnapshotManager(mochaMetastore, options.snapshotRoot);
 
   return (chai, utils) => {
-    chai.Assertion.addMethod('matchVerbatimSnapshot', function () {
-      // this._obj is the value in expect() call.
+    chai.Assertion.addMethod('matchVerbatimSnapshot', function() {
+      const actualValue = this._obj;
+      const snapshot = snapshotManger.loadCurrentSnapshot();
 
-      // Get snapshot of current test.
+      if (!snapshot) {
+        // Create new snapshot based on actual test value.
+        snapshotManger.saveCurrentSnapshot(new Snapshot(actualValue));
+        return;
+      }
+
+      // Figure out if we need to update the current snapshot if the current assertion is expected
+      // to fail.
+      //
+      // When .not is present in the assertion chain (expect(...).not.matchVerbatimSnapshot()), then
+      // this assertion fails when the actual test value and the snapshot contents DO match. Yet,
+      // this case is a no-op because there's no point in "updating" the snapshot's contents with
+      // the same contents. Admittedly, this is a weird case, but maybe there's a legit use for it.
+      //
+      // When .not is absent from the assertion chain, then this assertion fails when the actual
+      // test value and the snapshot contents DO NOT match. In this case, we would update the
+      // snapshot's contents using the actual test value given, assuming the plugin is configured to
+      // update this snapshot's contents.
+      const actualMatchesExpected = actualValue === snapshot.contents;
+
+      if (updateSnapshots && !actualMatchesExpected) {
+        // Update current snapshot with actual test value.
+        snapshotManger.saveCurrentSnapshot(new Snapshot(actualValue));
+        return;
+      }
+
+      this.assert(
+        actualMatchesExpected,
+        'Expected actual value to match snapshot contents',
+        'Expected actual value to not match snapshot contents',
+        snapshot.contents,
+        actualValue
+      );
     });
   };
 };

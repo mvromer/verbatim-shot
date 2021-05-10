@@ -1,7 +1,23 @@
 import fs from 'fs-extra';
 import path from 'path';
+import revisionHash from 'rev-hash';
 import { MochaMetastore } from '../metastore.js';
 import { Snapshot } from './snapshot.js';
+
+/**
+ * Manifest entry for a single snapshot.
+ *
+ * @typedef SnapshotManifestEntry
+ *
+ * @property {string} fileName Name of the file containing the described snapshot's data.
+ */
+
+/**
+ * Snapshot manifest.
+ *
+ * @typedef SnapshotManifest
+ * @type {Object.<string, SnapshotManifestEntry>}
+ */
 
 /**
  * Manage access to snapshots.
@@ -28,6 +44,48 @@ export class SnapshotManager {
   }
 
   /**
+   * Saves the snapshot for the current Mocha test. The manager uses its Mocha metastore to
+   * determine the current Mocha test. The manifest for the current Mocha test file will also be
+   * updated.
+   *
+   * @param {Snapshot} snapshot Snapshot to save.
+   */
+  saveCurrentSnapshot(snapshot) {
+    const currentTestRelativePath = this.mochaMetastore.currentTestRelativePath;
+    let currentManifest = this._getOrLoadManifest(currentTestRelativePath);
+
+    // Setup a manifest if one doesn't exist for the current test file.
+    if (!currentManifest) {
+      currentManifest = {};
+      this._loadedManifests.set(currentTestRelativePath, currentManifest);
+    }
+
+    const currentTestKey = this.mochaMetastore.currentTestKey;
+    let currentManifestEntry = currentManifest[currentTestKey];
+
+    // Setup a manifest entry for the current test if one doesn't exist.
+    if (!currentManifestEntry) {
+      currentManifestEntry = {};
+      currentManifest[currentTestKey] = currentManifestEntry;
+    }
+
+    if (!currentManifestEntry.fileName) {
+      currentManifestEntry.fileName = this._buildSnapshotFileName(currentTestKey);
+    }
+
+    // Ensure the snapshot's directory exists.
+    const currentSnapshotDir = path.join(
+      this.snapshotRoot,
+      currentTestRelativePath
+    );
+    fs.mkdirpSync(currentSnapshotDir);
+
+    snapshot.save(path.join(currentSnapshotDir, currentManifestEntry.fileName));
+    // XXX: May want to think about batching up manifest file updates.
+    this._saveManifest(currentManifest, currentTestRelativePath);
+  }
+
+  /**
    * Loads the snapshot for the current Mocha test. The manager uses its Mocha metastore to
    * determine the current Mocha test.
    *
@@ -37,16 +95,16 @@ export class SnapshotManager {
    */
   loadCurrentSnapshot() {
     const currentManifest = this._getOrLoadManifest(this.mochaMetastore.currentTestRelativePath);
-    const currentSnapshotManifestData = (currentManifest && currentManifest[this.mochaMetastore.currentTestKey]) ?? null;
+    const currentManifestEntry = (currentManifest && currentManifest[this.mochaMetastore.currentTestKey]) ?? null;
 
-    if (!currentSnapshotManifestData) {
+    if (!currentManifestEntry) {
       return null;
     }
 
     const currentSnapshotPath = path.join(
       this.snapshotRoot,
       this.mochaMetastore.currentTestRelativePath,
-      currentSnapshotManifestData.fileName);
+      currentManifestEntry.fileName);
 
     try {
       return Snapshot.loadFromFile(currentSnapshotPath);
@@ -56,20 +114,77 @@ export class SnapshotManager {
     }
   }
 
+  /**
+   * Gets a previously cached copy of the snapshot manifest for the given test path relative to the
+   * snapshot root. If a cached copy doesn't exist, then the snapshot manifest will be loaded,
+   * cached, and returned, if it exists.
+   *
+   * @param {string} testRelativePath Path relative to the snapshot root whose manifest to retrieve.
+   *
+   * @returns {SnapshotManifest | null} Snapshot manifest for the given test path, if it exists.
+   * Otherwise, returns null.
+   */
   _getOrLoadManifest(testRelativePath) {
     const manifest = this._loadedManifests.get(testRelativePath);
     return manifest ?? this._loadManifest(testRelativePath);
   }
 
+  /**
+   * Loads the snapshot manifest stored at the given test path relative to the snapshot root. The
+   * loaded snapshot manifest, if it exists, will be cached so future retrievals using
+   * _getOrLoadManifest will be faster.
+   *
+   * @param {string} testRelativePath Path relative to the snapshot root that contains the manifest
+   * to load.
+   *
+   * @returns {SnapshotManifest|null} Snapshot manifest stored at the given test path, if it
+   * exists. Otherwise, returns null.
+   */
   _loadManifest(testRelativePath) {
-    const manifestPath = path.join(this.snapshotRoot, testRelativePath, 'manifest.json');
-    const manifest = fs.readJsonSync(manifestPath, { throws: false });
+    const manifest = fs.readJsonSync(this._buildManifestPath(testRelativePath), { throws: false });
 
     if (manifest) {
       this._loadedManifests.set(testRelativePath, manifest);
     }
 
     return manifest;
+  }
+
+  /**
+   * Saves the given snapshot manifest to the given test path relative to the snapshot root.
+   *
+   * @param {SnapshotManifest} Snapshot manifest to save.
+   *
+   * @param {string} testRelativePath Path relative to the snapshot root to which the manifest will
+   * be saved
+   *
+   * @throws Will throw an error if the snapshot manifest cannot be saved.
+   */
+  _saveManifest(manifest, testRelativePath) {
+    fs.writeJsonSync(this._buildManifestPath(testRelativePath), manifest, { throws: true });
+  }
+
+  /**
+   * Builds the manifest path for test file with the given path relative to the snapshot root.
+   *
+   * @returns {string} Absolute path to the manifest for the test file with the given relative path.
+   */
+  _buildManifestPath(testRelativePath) {
+    return path.join(this.snapshotRoot, testRelativePath, 'manifest.json');
+  }
+
+  /**
+   * Builds a (reasonably) unique name for the snapshot file used to store the snapshot contents of
+   * the test with the given key.
+   *
+   * @param {string} testKey Key of the test whose snapshot data is to be stored in the file with
+   * the returned name.
+   *
+   * @returns {string} Name of the snapshot file used to store the snapshot contents of the test
+   * with the given key.
+   */
+  _buildSnapshotFileName(testKey) {
+    return `${revisionHash(testKey)}.txt`;
   }
 
   /**

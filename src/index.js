@@ -60,4 +60,10 @@
 // - if a test key does have a snapshot and the update setting in enabled, then need to update the
 //   test key's snapshot with the given content.
 
+// Future design notes:
+// - Right now snapshots are assumed to have utf-8 encoding. Can easily make this configurable by
+//   a single encoding plugin option that gets passed to SnapshotManager.loadCurrentSnapshot. Can
+//   also extend this to do per-test file encoding by using either an object or function that takes
+//   some snapshot-specific state and resolves to the encoding string.
+
 export * from './plugin.js';
