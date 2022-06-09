@@ -44,7 +44,7 @@
     "mocha": "^8.0.0"
   },
   "dependencies": {
-    "fs-extra": "^9.1.0",
+    "fs-extra": "^10.0.0",
     "has-flag": "^4.0.0",
     "parse-glob": "^3.0.4",
     "rev-hash": "^3.0.0"
